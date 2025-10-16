@@ -3,11 +3,13 @@ package com.sky.service.impl;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
+import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
+import com.sky.exception.AddEmployeeException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.service.EmployeeService;
@@ -67,6 +69,12 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     public void save(EmployeeDTO employeeDTO) {
 
+        Employee  existEmployee = employeeMapper.getByUsername(employeeDTO.getUsername()); //根据用户名查询员工
+
+        if (existEmployee != null){
+           throw new AddEmployeeException(MessageConstant.USERNAME_EXIST); //捕获插入用户异常
+        }
+
         Employee employee = new Employee(); //创建实体对象
 
         BeanUtils.copyProperties(employeeDTO, employee); //对象拷贝
@@ -79,9 +87,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setUpdateTime(LocalDateTime.now()); //设置更新时间
 
-        employee.setCreateUser(10L); //TODO 创建人，暂时写死
+        employee.setCreateUser(BaseContext.getCurrentId()); //设置当前记录创建人id
 
-        employee.setUpdateUser(10L); //修改人，暂时写死
+        employee.setUpdateUser(BaseContext.getCurrentId()); //设置当前记录修改人id
 
         employeeMapper.insert(employee); //调用Mapper层，执行插入操作
 
